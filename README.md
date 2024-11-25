@@ -11,9 +11,11 @@ install.packages("devtools")
 
 # Install dbNSFPAnnotator from GitHub
 devtools::install_github("SAADAT-Abu/dbNSFPAnnotator")
+```
 
 ## Usage
 
+```R
 library(dbNSFPAnnotator)
 
 # Example query data
@@ -27,3 +29,4 @@ query_data <- data.frame(
 
 # Annotate variants using a bgzipped dbNSFP file
 result <- annotate_variants(query_data, "path/to/dbNSFP.gz", chunk_size = 1000, workers = 6)
+```
