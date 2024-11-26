@@ -15,7 +15,7 @@ dbNSFP_columns <- function(dbnsfp_file) {
   header <- headerTabix(tabix_file)
   
   # Extract the column names
-  column_names <- strsplit(header[[1]], "\t")[[1]]
+  column_names <- strsplit(header$header, "\t")[[1]]
   
   # Standardize the column names (e.g., remove `#` from `#chr`)
   column_names <- gsub("^#chr$", "chr", column_names)
