@@ -7,7 +7,6 @@
 #' @return A character vector of column names if the file is valid and has a proper header.
 #' @export
 dbNSFP_columns <- function(dbnsfp_file) {
-  library(Rsamtools)
   
   # Check if file exists
   if (!file.exists(dbnsfp_file)) {

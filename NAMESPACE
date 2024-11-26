@@ -2,3 +2,7 @@
 
 export(annotate_variants)
 export(dbNSFP_columns)
+import(VariantAnnotation)
+import(Rsamtools)
+import(BiocParallel)
+
