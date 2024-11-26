@@ -1,19 +1,31 @@
 #' Annotate Variants Using dbNSFP
 #'
 #' This function annotates a set of variants using the dbNSFP database. 
-#' It allows the user to specify which columns from the dbNSFP database 
-#' should be used for annotation.
+#' It supports queries either in HGVSg format or as coordinates.
 #'
-#' @param query_data A data frame containing variant information with columns: 
-#'   `chr` (chromosome), `start` (start position), `end` (end position), `ref` (reference allele), and `alt` (alternate allele).
+#' @param query A data frame containing variant information. It should either:
+#'   - Have columns: `chr`, `start`, `end`, `ref`, `alt`.
+#'   - Or a single column `HGVSg` with HGVSg-formatted strings (e.g., `chr1:g.12345A>T`).
 #' @param dbnsfp_file Path to the bgzipped and indexed dbNSFP file.
 #' @param columns A character vector of column names from dbNSFP to include in the annotation. Default is NULL, which uses all available columns.
+#' @param is_HGVSg Boolean. If `TRUE`, treats input as HGVSg strings. Default is `FALSE`.
 #' @param chunk_size Number of variants to process per chunk. Default is 1000.
 #' @param workers Number of cores to use for parallelization. Default is 6.
 #'
 #' @return A data frame with the original query data and the selected dbNSFP annotations.
 #' @export
-annotate_variants <- function(query_data, dbnsfp_file, columns = NULL, chunk_size = 1000, workers = 6) {
+annotate_variants <- function(query, dbnsfp_file, columns = NULL, is_HGVSg = FALSE, chunk_size = 1000, workers = 6) {
+  
+  # Parse HGVSg if specified
+  if (is_HGVSg) {
+    if (!"HGVSg" %in% colnames(query)) {
+      stop("Input data must contain an 'HGVSg' column when is_HGVSg = TRUE.")
+    }
+    message("HGVSg mode detected. Parsing HGVSg strings...")
+    query <- parse_HGVSg(query$HGVSg)
+  } else if (!all(c("chr", "start", "end", "ref", "alt") %in% colnames(query))) {
+    stop("Input data must contain columns: chr, start, end, ref, alt when is_HGVSg = FALSE.")
+  }
   
   # Check if the dbNSFP file exists and is valid
   if (!file.exists(dbnsfp_file)) {
@@ -25,7 +37,7 @@ annotate_variants <- function(query_data, dbnsfp_file, columns = NULL, chunk_siz
   }
   
   # Get available columns from dbNSFP
-  available_columns <- dbNSFP_columns(dbnsfp_file)
+  available_columns <- list_dbNSFP_columns(dbnsfp_file)
   
   # Validate selected columns
   if (!is.null(columns)) {
@@ -46,7 +58,7 @@ annotate_variants <- function(query_data, dbnsfp_file, columns = NULL, chunk_siz
   register(param)
   
   # Split data into chunks
-  chunks <- split(query_data, (seq_len(nrow(query_data)) - 1) %/% chunk_size)
+  chunks <- split(query, (seq_len(nrow(query)) - 1) %/% chunk_size)
   
   # Define query function
   query_dbnsfp <- function(query_chunk) {
@@ -98,6 +110,6 @@ annotate_variants <- function(query_data, dbnsfp_file, columns = NULL, chunk_siz
   annotation_data <- do.call(rbind, all_annotations)
   
   # Merge annotations with original data
-  result <- cbind(query_data, annotation_data)
+  result <- cbind(query, annotation_data)
   return(result)
 }

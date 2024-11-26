@@ -8,17 +8,21 @@ annotate_variants(
   query,
   dbnsfp_file,
   columns = NULL,
+  is_HGVSg = FALSE,
   chunk_size = 1000,
   workers = 6
 )
 }
 \arguments{
-\item{query}{A data frame containing variant information with columns: 
-`chr` (chromosome), `start` (start position), `end` (end position), `ref` (reference allele), and `alt` (alternate allele).}
+\item{query}{A data frame containing variant information. It should either:
+- Have columns: `chr`, `start`, `end`, `ref`, `alt`.
+- Or a single column `HGVSg` with HGVSg-formatted strings (e.g., `chr1:g.12345A>T`).}
 
 \item{dbnsfp_file}{Path to the bgzipped and indexed dbNSFP file.}
 
 \item{columns}{A character vector of column names from dbNSFP to include in the annotation. Default is NULL, which uses all available columns.}
+
+\item{is_HGVSg}{Boolean. If `TRUE`, treats input as HGVSg strings. Default is `FALSE`.}
 
 \item{chunk_size}{Number of variants to process per chunk. Default is 1000.}
 
@@ -29,6 +33,5 @@ A data frame with the original query data and the selected dbNSFP annotations.
 }
 \description{
 This function annotates a set of variants using the dbNSFP database. 
-It allows the user to specify which columns from the dbNSFP database 
-should be used for annotation.
+It supports queries either in HGVSg format or as coordinates.
 }
