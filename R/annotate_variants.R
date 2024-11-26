@@ -7,7 +7,7 @@
 #' @param query_data A data frame containing variant information with columns: 
 #'   `chr` (chromosome), `start` (start position), `end` (end position), `ref` (reference allele), and `alt` (alternate allele).
 #' @param dbnsfp_file Path to the bgzipped and indexed dbNSFP file.
-#' @param  A character vector of column names from dbNSFP to include in the annotation. Default is NULL, which uses all available columns.
+#' @param columns A character vector of column names from dbNSFP to include in the annotation. Default is NULL, which uses all available columns.
 #' @param chunk_size Number of variants to process per chunk. Default is 1000.
 #' @param workers Number of cores to use for parallelization. Default is 6.
 #'
