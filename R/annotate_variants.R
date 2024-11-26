@@ -56,19 +56,24 @@ annotate_variants <- function(query, dbnsfp_file, columns = NULL, is_HGVSg = FAL
   param <- MulticoreParam(workers = workers)
   register(param)
   
-  # Split data into chunks
-  chunks <- split(query, (seq_len(nrow(query)) - 1) %/% chunk_size)
+  # Split data into chunks (adjusted for vectors)
+  if (is.vector(query_data)) {
+    chunk_indices <- split(seq_along(query_data), (seq_along(query_data) - 1) %/% chunk_size)
+  } else {
+    chunk_indices <- split(seq_len(nrow(query_data)), (seq_len(nrow(query_data)) - 1) %/% chunk_size)
+  }
   
   # Define query function
-  query_dbnsfp <- function(query_chunk) {
-    result_list <- vector("list", nrow(query_chunk))
-    for (i in seq_len(nrow(query_chunk))) {
+  query_dbnsfp <- function(indices) {
+    result_list <- vector("list", length(indices))
+    for (i in seq_along(indices)) {
       tryCatch({
+        index <- indices[i]
         region <- GRanges(
-          seqnames = query_chunk$chr[i],
+          seqnames = query_data$chr[index],
           ranges = IRanges(
-            start = query_chunk$start[i],
-            end = query_chunk$end[i]
+            start = query_data$start[index],
+            end = query_data$end[index]
           )
         )
         result <- scanTabix(TabixFile(dbnsfp_file), param = region)
@@ -83,19 +88,19 @@ annotate_variants <- function(query, dbnsfp_file, columns = NULL, is_HGVSg = FAL
             parsed_result[columns],
             error = function(e) {
               # Handle subscript out of bounds error
-              message(sprintf("Subscript out of bounds for variant %d: %s", i, e$message))
+              message(sprintf("Subscript out of bounds for variant %d: %s", index, e$message))
               setNames(rep(NA, length(columns)), columns)
             }
           )
           result_list[[i]] <- selected_result
         } else {
           # If no matching entry is found, return NA for all selected columns
-          message(sprintf("No match found for variant %d in dbNSFP.", i))
+          message(sprintf("No match found for variant %d in dbNSFP.", index))
           result_list[[i]] <- setNames(rep(NA, length(columns)), columns)
         }
       }, error = function(e) {
         # General error handling
-        message(sprintf("Error querying variant %d: %s", i, e$message))
+        message(sprintf("Error querying variant %d: %s", indices[i], e$message))
         result_list[[i]] <- setNames(rep(NA, length(columns)), columns)
       })
     }
@@ -103,12 +108,12 @@ annotate_variants <- function(query, dbnsfp_file, columns = NULL, is_HGVSg = FAL
   }
   
   # Process chunks in parallel
-  all_annotations <- bplapply(chunks, query_dbnsfp)
+  all_annotations <- bplapply(chunk_indices, query_dbnsfp)
   
   # Combine all chunks into a single data frame
   annotation_data <- do.call(rbind, all_annotations)
   
   # Merge annotations with original data
-  result <- cbind(query, annotation_data)
+  result <- cbind(query_data, annotation_data)
   return(result)
 }
