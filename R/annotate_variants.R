@@ -1,11 +1,10 @@
 #' Annotate Variants Using dbNSFP
 #'
 #' This function annotates a set of variants using the dbNSFP database. 
-#' It supports queries either in HGVSg format or as coordinates.
+#' It supports queries either in HGVSg format or as separate columns.
 #'
-#' @param query A data frame containing variant information. It should either:
-#'   - Have columns: `chr`, `start`, `end`, `ref`, `alt`.
-#'   - Or a single column `HGVSg` with HGVSg-formatted strings (e.g., `chr1:g.12345A>T`).
+#' @param query A data frame or vector. If `is_HGVSg = TRUE`, provide a vector of HGVSg strings. 
+#'   Otherwise, provide a data frame with columns: `chr`, `start`, `end`, `ref`, `alt`.
 #' @param dbnsfp_file Path to the bgzipped and indexed dbNSFP file.
 #' @param columns A character vector of column names from dbNSFP to include in the annotation. Default is NULL, which uses all available columns.
 #' @param is_HGVSg Boolean. If `TRUE`, treats input as HGVSg strings. Default is `FALSE`.
@@ -18,13 +17,13 @@ annotate_variants <- function(query, dbnsfp_file, columns = NULL, is_HGVSg = FAL
   
   # Parse HGVSg if specified
   if (is_HGVSg) {
-    if (!"HGVSg" %in% colnames(query)) {
-      stop("Input data must contain an 'HGVSg' column when is_HGVSg = TRUE.")
-    }
     message("HGVSg mode detected. Parsing HGVSg strings...")
-    query <- parse_HGVSg(query$HGVSg)
-  } else if (!all(c("chr", "start", "end", "ref", "alt") %in% colnames(query))) {
-    stop("Input data must contain columns: chr, start, end, ref, alt when is_HGVSg = FALSE.")
+    query_data <- parse_HGVSg(query)
+  } else {
+    query_data <- query
+    if (!all(c("chr", "start", "end", "ref", "alt") %in% colnames(query_data))) {
+      stop("Input data must contain columns: chr, start, end, ref, alt when is_HGVSg = FALSE.")
+    }
   }
   
   # Check if the dbNSFP file exists and is valid
@@ -37,7 +36,7 @@ annotate_variants <- function(query, dbnsfp_file, columns = NULL, is_HGVSg = FAL
   }
   
   # Get available columns from dbNSFP
-  available_columns <- list_dbNSFP_columns(dbnsfp_file)
+  available_columns <- dbNSFP_columns(dbnsfp_file)
   
   # Validate selected columns
   if (!is.null(columns)) {
