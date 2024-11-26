@@ -28,7 +28,7 @@ annotate_variants <- function(query, dbnsfp_file, columns = NULL, chunk_size = 1
   }
   
   # Get available columns from dbNSFP
-  available_columns <- list_dbNSFP_columns(dbnsfp_file)
+  available_columns <- dbNSFP_columns(dbnsfp_file)
   
   # Validate selected columns
   if (!is.null(columns)) {

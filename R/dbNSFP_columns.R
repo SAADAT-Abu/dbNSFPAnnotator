@@ -41,7 +41,7 @@ dbNSFP_columns <- function(dbnsfp_file) {
   
   # Extract the column names
   column_names <- tryCatch({
-    strsplit(header[[1]], "\t")[[1]]
+    strsplit(header$header, "\t")[[1]]
   }, error = function(e) {
     stop("Failed to parse the header of the dbNSFP file. Ensure the header line is tab-delimited.")
   })
