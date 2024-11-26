@@ -4,21 +4,31 @@
 \alias{annotate_variants}
 \title{Annotate Variants Using dbNSFP}
 \usage{
-annotate_variants(query_data, dbnsfp_file, chunk_size = 1000, workers = 6)
+annotate_variants(
+  query,
+  dbnsfp_file,
+  columns = NULL,
+  chunk_size = 1000,
+  workers = 6
+)
 }
 \arguments{
-\item{query_data}{A data frame containing variant information with columns:
+\item{query}{A data frame containing variant information with columns: 
 `chr` (chromosome), `start` (start position), `end` (end position), `ref` (reference allele), and `alt` (alternate allele).}
 
 \item{dbnsfp_file}{Path to the bgzipped and indexed dbNSFP file.}
+
+\item{columns}{A character vector of column names from dbNSFP to include in the annotation. Default is NULL, which uses all available columns.}
 
 \item{chunk_size}{Number of variants to process per chunk. Default is 1000.}
 
 \item{workers}{Number of cores to use for parallelization. Default is 6.}
 }
 \value{
-A data frame with the original query data and dbNSFP annotations.
+A data frame with the original query data and the selected dbNSFP annotations.
 }
 \description{
-This function annotates a set of variants using the dbNSFP database.
+This function annotates a set of variants using the dbNSFP database. 
+It allows the user to specify which columns from the dbNSFP database 
+should be used for annotation.
 }
