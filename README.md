@@ -30,10 +30,11 @@ query_data <- data.frame(
 # Annotate variants using a bgzipped dbNSFP file
 
 annotate_variants(
-  query_data,          # Data frame with variant information
+  query,          # Data frame with variant information
   dbnsfp_file,         # Path to the bgzipped dbNSFP file
   columns = NULL,  # Vector of dbNSFP columns to include (default: all)
   chunk_size = 1000,   # Number of variants to process per chunk
+  is_HGVSg = FALSE,    # Toogle it to TRUE if the supplied queries are in HGVSg format
   workers = 6          # Number of cores for parallel processing
 )
 
