@@ -2,6 +2,8 @@
 
 export(annotate_variants)
 export(dbNSFP_columns)
+export(parse_HGVSg)
 import(VariantAnnotation)
 import(Rsamtools)
 import(BiocParallel)
+import(GenomicRanges)

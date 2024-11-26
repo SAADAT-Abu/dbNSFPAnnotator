@@ -12,7 +12,8 @@ Depends: R (>= 4.0)
 Imports:
     VariantAnnotation,
     Rsamtools,
-    BiocParallel
+    BiocParallel,
+    GenomicRanges
 RoxygenNote: 7.3.2
 Suggests: 
     testthat (>= 3.0.0)

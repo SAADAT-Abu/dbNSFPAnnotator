@@ -56,12 +56,8 @@ annotate_variants <- function(query, dbnsfp_file, columns = NULL, is_HGVSg = FAL
   param <- MulticoreParam(workers = workers)
   register(param)
   
-  # Split data into chunks (adjusted for vectors)
-  if (is.vector(query_data)) {
-    chunk_indices <- split(seq_along(query_data), (seq_along(query_data) - 1) %/% chunk_size)
-  } else {
-    chunk_indices <- split(seq_len(nrow(query_data)), (seq_len(nrow(query_data)) - 1) %/% chunk_size)
-  }
+  # Split data into chunks
+  chunk_indices <- split(seq_len(nrow(query_data)), (seq_len(nrow(query_data)) - 1) %/% chunk_size)
   
   # Define query function
   query_dbnsfp <- function(indices) {
@@ -104,7 +100,10 @@ annotate_variants <- function(query, dbnsfp_file, columns = NULL, is_HGVSg = FAL
         result_list[[i]] <- setNames(rep(NA, length(columns)), columns)
       })
     }
-    return(do.call(rbind, result_list))
+    # Ensure results have consistent structure
+    do.call(rbind, lapply(result_list, function(res) {
+      if (is.null(res)) setNames(rep(NA, length(columns)), columns) else res
+    }))
   }
   
   # Process chunks in parallel
@@ -112,6 +111,11 @@ annotate_variants <- function(query, dbnsfp_file, columns = NULL, is_HGVSg = FAL
   
   # Combine all chunks into a single data frame
   annotation_data <- do.call(rbind, all_annotations)
+  
+  # Ensure consistent row count with original query
+  if (nrow(annotation_data) != nrow(query_data)) {
+    stop("Row count mismatch: Ensure consistent results for all queries.")
+  }
   
   # Merge annotations with original data
   result <- cbind(query_data, annotation_data)
